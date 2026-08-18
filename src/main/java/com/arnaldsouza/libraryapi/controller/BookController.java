@@ -2,7 +2,7 @@ package com.arnaldsouza.libraryapi.controller;
 
 import com.arnaldsouza.libraryapi.dto.BookRequest;
 import com.arnaldsouza.libraryapi.dto.BookResponse;
-import com.arnaldsouza.libraryapi.service.BookService;
+import com.arnaldsouza.libraryapi.services.BookService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

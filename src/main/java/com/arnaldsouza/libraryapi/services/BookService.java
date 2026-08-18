@@ -1,8 +1,9 @@
-package com.arnaldsouza.libraryapi.service;
+package com.arnaldsouza.libraryapi.services;
 
 import com.arnaldsouza.libraryapi.dto.BookRequest;
 import com.arnaldsouza.libraryapi.dto.BookResponse;
 import com.arnaldsouza.libraryapi.entity.Book;
+import com.arnaldsouza.libraryapi.exception.BookNotFoundException;
 import com.arnaldsouza.libraryapi.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +40,7 @@ public class BookService {
 
     public BookResponse findById(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+                .orElseThrow(() -> new BookNotFoundException(id));
         return toResponse(book);
     }
 
