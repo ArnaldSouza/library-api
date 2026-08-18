@@ -6,6 +6,10 @@ import com.arnaldsouza.libraryapi.entity.Book;
 import com.arnaldsouza.libraryapi.exception.BookNotFoundException;
 import com.arnaldsouza.libraryapi.repository.BookRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.arnaldsouza.libraryapi.repository.BookSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -25,11 +29,10 @@ public class BookService {
         return toResponse(savedBook);
     }
 
-    public List<BookResponse> findAll() {
-        return bookRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+    public Page<BookResponse> findAll(String author, String genre, Pageable pageable) {
+        Specification<Book> spec = BookSpecification.withFilters(author, genre);
+        return bookRepository.findAll(spec, pageable)
+                .map(this::toResponse);
     }
 
     public BookResponse findById(Long id) {
