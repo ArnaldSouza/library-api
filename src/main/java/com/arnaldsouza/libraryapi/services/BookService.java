@@ -20,13 +20,7 @@ public class BookService {
 
     public BookResponse create(BookRequest request) {
         Book book = new Book();
-        book.setTitle(request.title());
-        book.setAuthor(request.author());
-        book.setIsbn(request.isbn());
-        book.setPublishedYear(request.publishedYear());
-        book.setGenre(request.genre());
-        book.setAvailableCopies(request.availableCopies());
-
+        applyRequest(book, request);
         Book savedBook = bookRepository.save(book);
         return toResponse(savedBook);
     }
@@ -42,6 +36,30 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
         return toResponse(book);
+    }
+
+    public BookResponse update(Long id, BookRequest request) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+        applyRequest(book, request);
+        Book updatedBook = bookRepository.save(book);
+        return toResponse(updatedBook);
+    }
+
+    public void delete(Long id) {
+        if (!bookRepository.existsById(id)) {
+            throw new BookNotFoundException(id);
+        }
+        bookRepository.deleteById(id);
+    }
+
+    private void applyRequest(Book book, BookRequest request) {
+        book.setTitle(request.title());
+        book.setAuthor(request.author());
+        book.setIsbn(request.isbn());
+        book.setPublishedYear(request.publishedYear());
+        book.setGenre(request.genre());
+        book.setAvailableCopies(request.availableCopies());
     }
 
     private BookResponse toResponse(Book book) {
