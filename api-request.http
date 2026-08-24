@@ -1,0 +1,100 @@
+### Variables
+@baseUrl = http://localhost:8080/api/v1
+
+### Register a new user (role USER)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "arnald",
+  "password": "supersecret123"
+}
+
+### Login as USER
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "arnald",
+  "password": "supersecret123"
+}
+
+> {% client.global.set("userToken", response.body.token); %}
+
+### Login as ADMIN (seeded)
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin12345"
+}
+
+> {% client.global.set("adminToken", response.body.token); %}
+
+### List books (USER can read)
+GET {{baseUrl}}/books
+Authorization: Bearer {{userToken}}
+
+### List books with filters
+GET {{baseUrl}}/books?author=martin&page=0&size=5
+Authorization: Bearer {{userToken}}
+
+### Get book by id
+GET {{baseUrl}}/books/2
+Authorization: Bearer {{userToken}}
+
+### Create book as USER (should fail with 403)
+POST {{baseUrl}}/books
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "title": "Refactoring",
+  "author": "Martin Fowler",
+  "isbn": "9780134757599",
+  "publishedYear": 2018,
+  "genre": "Software",
+  "availableCopies": 4
+}
+
+### Create book as ADMIN (should succeed with 201)
+POST {{baseUrl}}/books
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Refactoring",
+  "author": "Martin Fowler",
+  "isbn": "9780134757599",
+  "publishedYear": 2018,
+  "genre": "Software",
+  "availableCopies": 4
+}
+
+### Update book as ADMIN
+PUT {{baseUrl}}/books/2
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "isbn": "9780132350884",
+  "publishedYear": 2008,
+  "genre": "Software Engineering",
+  "availableCopies": 10
+}
+
+### Delete book as USER (should fail with 403)
+DELETE {{baseUrl}}/books/2
+Authorization: Bearer {{userToken}}
+
+### Delete book as ADMIN (should succeed with 204)
+DELETE {{baseUrl}}/books/2
+Authorization: Bearer {{adminToken}}
+
+### Access without token (should fail with 403)
+GET {{baseUrl}}/books
