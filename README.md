@@ -1,5 +1,7 @@
 # Library API
 
+[![CI](https://github.com/ArnaldSouza/library-api/actions/workflows/ci.yml/badge.svg)](https://github.com/ArnaldSouza/library-api/actions/workflows/ci.yml)
+
 A REST API for managing a library's book inventory, with JWT authentication and role-based access control.
 
 ## Problem
@@ -15,6 +17,7 @@ Libraries and small collections need a controlled way to track their inventory: 
 - **Testing:** JUnit 5, Mockito, AssertJ, MockMvc
 - **Build:** Maven
 - **Containerization:** Docker / Docker Compose
+- **CI:** GitHub Actions
 
 ## What This Demonstrates
 
@@ -23,8 +26,8 @@ Libraries and small collections need a controlled way to track their inventory: 
 - **Layered architecture** with strict separation between controller, service, and repository, and DTOs isolating the API contract from the persistence model
 - **Dynamic filtering** using JPA Specifications, so optional query parameters combine without a combinatorial explosion of repository methods
 - **Centralized exception handling** returning semantically correct status codes (404, 400 with per-field errors, 409, 401) instead of leaking stack traces
-- **Security-conscious defaults**: registration cannot self-assign `ADMIN`, login failures return a generic message to prevent user enumeration, credentials live in environment variables, and the container runs as a non-root user
-- **29 automated tests** covering business logic in isolation (Mockito) and the full HTTP chain including authentication (MockMvc)
+- **Security-conscious defaults**: registration cannot self-assign `ADMIN`, login failures return a generic message to prevent user enumeration, credentials live in environment variables (the real `.env` is never committed), and the container runs as a non-root user
+- **29 automated tests** covering business logic in isolation (Mockito) and the full HTTP chain including authentication (MockMvc), run on every push through GitHub Actions
 
 ## Architecture
 
@@ -72,7 +75,7 @@ docker compose up --build
 
 The API is available at `http://localhost:8080`.
 
-Edit `.env` before starting if you want different credentials. The file is git-ignored; `.env.example` is the template.
+Edit `.env` before starting if you want different credentials. The file is git-ignored and never committed; `.env.example` is the template.
 
 ### Running locally without Docker
 
@@ -187,6 +190,10 @@ docker exec library-db psql -U library_user -d library -c "CREATE DATABASE libra
 
 - `BookControllerIT` — authentication via real JWTs, role enforcement on every verb, pagination, filtering, validation errors, and 404 handling
 
+## Continuous Integration
+
+Every push to `main` and every pull request runs the full test suite through GitHub Actions (`.github/workflows/ci.yml`). The workflow provisions its own PostgreSQL service container, so the integration tests run against a real database without any manual setup.
+
 ## Known Limitations
 
 This is a portfolio project. The following are deliberate trade-offs, documented rather than hidden:
@@ -194,7 +201,7 @@ This is a portfolio project. The following are deliberate trade-offs, documented
 - **Schema management uses `ddl-auto: update`.** Hibernate generates the schema from the entities, which is convenient for development but unsafe for production. A real deployment would use versioned migrations (Flyway or Liquibase).
 - **The default admin account is seeded at startup.** Credentials come from environment variables rather than being hardcoded, but any known default account is a risk. In production, the first administrator would be provisioned out-of-band.
 - **The JWT secret is a static value.** There is no key rotation, and no refresh-token flow — tokens simply expire after one hour.
-- **Integration tests depend on a running database.** They target the Compose container rather than spinning up a disposable one, so `docker compose up -d db` is a prerequisite.
+- **Integration tests depend on a running database.** Locally they target the Compose container rather than spinning up a disposable one, so `docker compose up -d db` is a prerequisite. CI provisions its own PostgreSQL service instead.
 - **`Page` is serialized directly.** Spring Data warns that `PageImpl`'s JSON structure is not guaranteed to be stable across versions; `PagedModel` would be the safer contract.
 - **DTO ↔ entity mapping is manual.** Explicit and dependency-free, but repetitive as the model grows. MapStruct would generate it.
 - **One role per user.** A single enum field covers the two-role requirement; a many-to-many relationship would be needed for users holding multiple roles.
